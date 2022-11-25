@@ -17,6 +17,5 @@ This repository was written largely by Frederik Ludwigs and Jonas Hagenberg.
 ├── evaluation_code_and_results <- R code for evaluating the raw results and the figures and the table shown in the paper and in the Supplementary Materials
 │   │  
 │   ├─── code                <- R code for evaluating the raw results
-│   ├─── figures_and_table1  <- the figures and the table shown in the paper and in the Supplementary Materials
-│  
+│   └─── figures_and_table1  <- the figures and the table shown in the paper and in the Supplementary Materials
 ```
