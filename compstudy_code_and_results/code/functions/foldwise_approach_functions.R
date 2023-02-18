@@ -1,117 +1,3 @@
-# This function generates a simulated data set and calculates the importance values for
-# all methods except for the IMDMS.
-#
-# It takes the whole number 'iter', which corresponds to the iter-th line 
-# of 'scenariogrid', which contains the necessary information
-# on the iter-th setting.
-
-evaluatesetting <- function(iter) {
-  
-  RNGkind(sample.kind = "Rejection")
-  
-  # 0-2 Load packages
-  library(checkmate)
-  library(randomForestSRC)
-  library(caret)
-  library(pROC)
-  # library(doParallel)
-  
-  # Obtain information for the iter-th setting:
-  
-  curr_path <- scenariogrid$curr_path[iter]
-  curr_train_pattern <- scenariogrid$curr_train_pattern[iter]
-  curr_test_pattern <- scenariogrid$curr_test_pattern[iter]
-  curr_repetition <- scenariogrid$curr_repetition[iter]
-  int_seed <- scenariogrid$int_seed[iter]
-  
-  settingid <- scenariogrid$settingid[iter]
-  
-  # Set seed & draw points from uniform distribution
-  set.seed(int_seed)    
-  seeds <- round(runif(4, 0, 100000))
-  
-  # Use these 'seeds' to set the four necessary seeds for the evaluation:
-  #     1. Seed to split data into test & train
-  curr_split_seed <- seeds[1]
-  
-  #     2. Seed to shuffle the block order in 'train'
-  curr_block_seed_train <- seeds[2]
-  
-  #     3. Seed to shuffle the block order in 'test'
-  curr_block_seed_test <- seeds[3]
-  
-  #     4. Seed for the train-pattern (assignment of obs. in train to folds)
-  curr_train_pattern_seed <- seeds[4]
-  
-  if(FALSE) {
-    # Run the evaluation with current settings
-    curr_res <- tryCatch(eval_fw_approach(path               = curr_path,
-                                          frac_train         = 0.75,
-                                          split_seed         = curr_split_seed,
-                                          block_seed_train   = curr_block_seed_train,
-                                          block_seed_test    = curr_block_seed_test,
-                                          train_pattern      = curr_train_pattern,
-                                          train_pattern_seed = curr_train_pattern_seed,
-                                          test_pattern       = curr_test_pattern),
-                         error = function(c) {
-                           data.frame("path"               = curr_path,
-                                      "frac_train"         = 0.75,
-                                      "split_seed"         = curr_split_seed,
-                                      "block_seed_train"   = curr_block_seed_train,
-                                      "block_seed_test"    = curr_block_seed_test,
-                                      "block_order_train_for_BWM" = '---',
-                                      "block_order_test_for_BWM"  = '---',
-                                      "train_pattern"      = curr_train_pattern,
-                                      "train_pattern_seed" = curr_train_pattern_seed,
-                                      "test_pattern"       = curr_test_pattern,
-                                      "AUC"                = '---',
-                                      "Accuracy"           = '---',
-                                      "Sensitivity"        = '---',
-                                      "Specificity"        = '---',
-                                      "Precision"          = '---',
-                                      "Recall"             = '---',
-                                      "F1"                 = '---',
-                                      "BrierScore"         = '---')
-                         }
-    )
-  }
-  curr_res <- eval_fw_approach(path               = curr_path,
-                               frac_train         = 0.75,
-                               split_seed         = curr_split_seed,
-                               block_seed_train   = curr_block_seed_train,
-                               block_seed_test    = curr_block_seed_test,
-                               train_pattern      = curr_train_pattern,
-                               train_pattern_seed = curr_train_pattern_seed,
-                               test_pattern       = curr_test_pattern)
-  
-  # Add the, 'int_seed', 'curr_repetition' & 'Foldwise' to 'curr_res'
-  curr_res$int_seed   <- int_seed
-  curr_res$repetition <- curr_repetition
-  curr_res$approach   <- 'Foldwise'
-  
-  save(curr_res, file=paste0("./compstudy_code_and_results/results/fw_approach/FW_Eval_", settingid, ".Rda"))
-  
-  # Return results:
-  
-  return(curr_res)
-  
-}
-
-
-
-
-# 0-3 Define variables
-
-# 0-4 Define functions
-# 0-4-1 Load functions from './compstudy_code_and_results/code/functions/create_bwm_pattern.R"
-source("./compstudy_code_and_results/code/functions/create_bwm_pattern.R")
-
-
-
-
-
-# 0-4-2 Functions so we can fit and prune a RF 
-#       (not possible with 'randomForestSRC'-library...):
 ###########################################################
 
 
@@ -1523,4 +1409,106 @@ eval_fw_approach <- function(path = './compstudy_code_and_results/data/BLCA.Rda'
                     "Recall"             = metrics_1$byClass['Recall'], 
                     "F1"                 = metrics_1$byClass['F1'], 
                     "BrierScore"         = brier))
+}
+
+
+
+##### ROMAN:
+# This function generates a simulated data set and calculates the importance values for
+# all methods except for the IMDMS.
+#
+# It takes the whole number 'iter', which corresponds to the iter-th line 
+# of 'scenariogrid', which contains the necessary information
+# on the iter-th setting.
+source("./compstudy_code_and_results/code/functions/create_bwm_pattern.R")
+evaluatesetting <- function(iter) {
+  
+  RNGkind(sample.kind = "Rejection")
+  
+  # 0-2 Load packages
+  library(checkmate)
+  library(randomForestSRC)
+  library(caret)
+  library(pROC)
+  # library(doParallel)
+  
+  # Obtain information for the iter-th setting:
+  
+  curr_path <- scenariogrid$curr_path[iter]
+  curr_train_pattern <- scenariogrid$curr_train_pattern[iter]
+  curr_test_pattern <- scenariogrid$curr_test_pattern[iter]
+  curr_repetition <- scenariogrid$curr_repetition[iter]
+  int_seed <- scenariogrid$int_seed[iter]
+  
+  settingid <- scenariogrid$settingid[iter]
+  
+  # Set seed & draw points from uniform distribution
+  set.seed(int_seed)    
+  seeds <- round(runif(4, 0, 100000))
+  
+  # Use these 'seeds' to set the four necessary seeds for the evaluation:
+  #     1. Seed to split data into test & train
+  curr_split_seed <- seeds[1]
+  
+  #     2. Seed to shuffle the block order in 'train'
+  curr_block_seed_train <- seeds[2]
+  
+  #     3. Seed to shuffle the block order in 'test'
+  curr_block_seed_test <- seeds[3]
+  
+  #     4. Seed for the train-pattern (assignment of obs. in train to folds)
+  curr_train_pattern_seed <- seeds[4]
+  
+  if(FALSE) {
+    # Run the evaluation with current settings
+    curr_res <- tryCatch(eval_fw_approach(path               = curr_path,
+                                          frac_train         = 0.75,
+                                          split_seed         = curr_split_seed,
+                                          block_seed_train   = curr_block_seed_train,
+                                          block_seed_test    = curr_block_seed_test,
+                                          train_pattern      = curr_train_pattern,
+                                          train_pattern_seed = curr_train_pattern_seed,
+                                          test_pattern       = curr_test_pattern),
+                         error = function(c) {
+                           data.frame("path"               = curr_path,
+                                      "frac_train"         = 0.75,
+                                      "split_seed"         = curr_split_seed,
+                                      "block_seed_train"   = curr_block_seed_train,
+                                      "block_seed_test"    = curr_block_seed_test,
+                                      "block_order_train_for_BWM" = '---',
+                                      "block_order_test_for_BWM"  = '---',
+                                      "train_pattern"      = curr_train_pattern,
+                                      "train_pattern_seed" = curr_train_pattern_seed,
+                                      "test_pattern"       = curr_test_pattern,
+                                      "AUC"                = '---',
+                                      "Accuracy"           = '---',
+                                      "Sensitivity"        = '---',
+                                      "Specificity"        = '---',
+                                      "Precision"          = '---',
+                                      "Recall"             = '---',
+                                      "F1"                 = '---',
+                                      "BrierScore"         = '---')
+                         }
+    )
+  }
+  
+  curr_res <- eval_fw_approach(path               = curr_path,
+                               frac_train         = 0.75,
+                               split_seed         = curr_split_seed,
+                               block_seed_train   = curr_block_seed_train,
+                               block_seed_test    = curr_block_seed_test,
+                               train_pattern      = curr_train_pattern,
+                               train_pattern_seed = curr_train_pattern_seed,
+                               test_pattern       = curr_test_pattern)
+  
+  # Add the, 'int_seed', 'curr_repetition' & 'Foldwise' to 'curr_res'
+  curr_res$int_seed   <- int_seed
+  curr_res$repetition <- curr_repetition
+  curr_res$approach   <- 'Foldwise'
+  
+  save(curr_res, file=paste0("./compstudy_code_and_results/results/fw_approach/FW_Eval_", settingid, ".Rda"))
+  
+  # Return results:
+  
+  return(curr_res)
 }
