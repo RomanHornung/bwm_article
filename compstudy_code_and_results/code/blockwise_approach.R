@@ -3,7 +3,7 @@
 # and replace 'pathtobwm_article' by the path to 'bwm_article'
 # on your computer):
 
-## setwd("pathtobwm_article/bwm_article")
+# setwd("pathtobwm_article/bwm_article") 
 
 "Script to evaluate the Block-wise approach on data with blockwise missingness
  Split a DF to a train- & test-set, separately induce block-wise missingness
@@ -36,7 +36,7 @@ source("./compstudy_code_and_results/code/functions/create_bwm_pattern.R")
 source("./compstudy_code_and_results/code/functions/blockwise_approach_functions.R")
 
 # [1] Run the experiments                                                    ----
-# 1-1 Initalize a empty DF to store the results
+# 1-1 Initialize a empty DF to store the results
 BW_res <- data.frame()
 
 # 1-2 Define a list with the paths to the availabe DFs
@@ -99,7 +99,7 @@ for (curr_path in df_paths) {
                                data.frame("path"               = curr_path, 
                                           "frac_train"         = 0.75, 
                                           "split_seed"         = curr_split_seed, 
-                                          "block_seed_train"   = block_seed_train,
+                                          "block_seed_train"   = curr_block_seed_train,
                                           "block_seed_test"    = curr_block_seed_test, 
                                           "block_order_train_for_BWM" = '---',
                                           "block_order_test_for_BWM"  = '---',
@@ -117,6 +117,7 @@ for (curr_path in df_paths) {
                                           "BrierScore"         = '---')
                              }
         ) 
+        
         # Add the, 'int_seed', 'curr_repetition' & 'SingleBlock' to 'curr_res'
         curr_res$int_seed   <- int_seed
         curr_res$repetition <- curr_repetition
@@ -124,7 +125,8 @@ for (curr_path in df_paths) {
         
         # Add the results of the setting to 'BW_res' & save it
         BW_res <- rbind(BW_res, curr_res)
-        write.csv(BW_res, './compstudy_code_and_results/results/bw_approach/BW_Eval.csv')
+        write.csv(BW_res, './compstudy_code_and_results/results/bw_approach/BW_Eval_TEST.csv')
+        # write.csv(BW_res, './compstudy_code_and_results/results/bw_approach/BW_Eval.csv')
       }
     }
   }
