@@ -34,7 +34,6 @@ source("./compstudy_code_and_results/code/functions/create_bwm_pattern.R")
 
 source("./compstudy_code_and_results/code/functions/complete_case_approach_functions.R")
 
-
 # [1] Run the experiments                                                    ----
 # 1-1 Initialize empty DF to store all evaluation results
 CC_res <- data.frame()
