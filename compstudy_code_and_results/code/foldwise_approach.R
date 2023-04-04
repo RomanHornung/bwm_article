@@ -8,11 +8,12 @@
 # [0] SetWD, load packages, define variables and functions                  ----
 # 0-1 Set WD
 
+# Use rejection sampling for random number sampling:
 RNGkind(sample.kind = "Rejection") 
+
 # Make table of settings:
 
 # 1-2 Define a list with the paths to the availabe DFs
-# df_paths <- paste0("./Data/Raw/", list.files("./Data/Raw/"))
 df_paths <- paste0("./compstudy_code_and_results/data/", list.files("./compstudy_code_and_results/data/"))
 
 # 1-3 Create a list of seeds for each single evaluation-setting
@@ -56,19 +57,11 @@ source("./compstudy_code_and_results/code/functions/foldwise_approach_functions.
 source("./compstudy_code_and_results/code/functions/create_bwm_pattern.R")
 
 
-# which(scenariogrid$curr_path=="./Data/Raw/ESCA.Rda" & scenariogrid$curr_train_pattern==5 & scenariogrid$curr_test_pattern==3)
-
 # Load 'parallel'-package: 
 library("parallel") 
 
 RNGkind("L'Ecuyer-CMRG")
 set.seed(1234)
 
-
+# Perform the calculations and save the results:
 Results <- mclapply(1:nrow(scenariogrid), function(z) try({evaluatesetting(z)}), mc.silent=TRUE, mc.cores = 90) 
-
-
-
-# Save the results:
-
-save(Results, file="./compstudy_code_and_results/results/fw_approach/Results_foldwiseRF.Rda")

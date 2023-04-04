@@ -8,6 +8,13 @@
 
 if (FALSE) {
   
+  # In this part, the raw results obtained for the different approaches are read in
+  # pre-processed and save in a file "resall" (note that this part can be skipped
+  # because the file "resall" is available in directory "bwm_article/compstudy_code_and_results/results"):
+  
+  
+  resfd <- read.csv("./compstudy_code_and_results/results/fd_approach/FD_Eval.csv")
+  
   resbw <- read.csv("./compstudy_code_and_results/results/bw_approach/BW_Eval.csv")
   
   rescc <- read.csv("./compstudy_code_and_results/results/cc_approach/CC_Eval.csv")
@@ -157,14 +164,8 @@ if (FALSE) {
   rescc$mtry <- as.numeric(rescc$mtry)
   rescc$min_node_size <- as.numeric(rescc$min_node_size)
   
-  sapply(datlist, function(x) "min_node_size" %in% names(x))
-  
-  head(rescc$mtry, 50)
-  
-  rescc$ntree
-  
-  datlist <- list(resbw, rescc, resimp, resmddspls, respl, ressb, resfw)
-  names(datlist) <- c("bw", "cc", "imp", "mddspls", "pl", "sb", "fw")
+  datlist <- list(resbw, rescc, resimp, resmddspls, respl, ressb, resfw, resfd)
+  names(datlist) <- c("bw", "cc", "imp", "mddspls", "pl", "sb", "fw", "fd")
   
   
   
@@ -174,8 +175,8 @@ if (FALSE) {
   resall <- bind_rows(datlist)
   
   
-  resall$method <- factor(rep(c("BlwRF", "ComplcRF", "ImpRF", "MddsPLS", "PrLasso", "SingleBlRF", "MultisRF"),
-                              times=sapply(datlist, nrow)), levels=c("ComplcRF", "SingleBlRF", "BlwRF", "MultisRF", "ImpRF", "MddsPLS", "PrLasso"))
+  resall$method <- factor(rep(c("BlwRF", "ComplcRF", "ImpRF", "MddsPLS", "PrLasso", "SingleBlRF", "MultisRF", "FulldataRF"),
+                              times=sapply(datlist, nrow)), levels=c("ComplcRF", "SingleBlRF", "BlwRF", "MultisRF", "ImpRF", "MddsPLS", "PrLasso", "FulldataRF"))
   
   
   
@@ -187,16 +188,18 @@ if (FALSE) {
 
   resall$dataset <- gsub(".Rda", "", gsub("/BWM-Article/Data/Raw/", "", resall$dataset))
   resall$dataset <- gsub(".Rda", "", gsub("./Data/Raw/", "", resall$dataset))
-
+  resall$dataset <- gsub(".Rda", "", gsub("./compstudy_code_and_results/data/", "", resall$dataset))
   
   
-  save(resall, file="./compstudy_code_and_results/results/fw_approach/resall.Rda")
+  save(resall, file="./compstudy_code_and_results/results/resall.Rda")
   
 }
 
 
 
-load("./compstudy_code_and_results/results/fw_approach/resall.Rda")
+# Load the processed results:
+
+load("./compstudy_code_and_results/results/resall.Rda")
 
 
 
@@ -315,10 +318,13 @@ table(is.na(resallwide$AUC.ComplcRF), is.na(resallwide$AUC.MultisRF))
 
 
 
+
 ################################################################################
 # Global comparison without distinguishing between different trbmp and tebmp vales
 ################################################################################
 
+resallsafe <- resall
+resall <- resall[resall$method!="FulldataRF",]
 
 # Perform the analysis under the exclusion of all repetitions for which at least
 # one method resulted in an error:
@@ -390,12 +396,14 @@ p <- ggplot(data=ggdata, aes(x=method, y=value)) + theme_bw() + facet_wrap(~meas
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_global_values.pdf", width=7, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_global_values.pdf", width=7, height=10)
 
 
 
 
 # Boxplots of the ranks:
+
+
 
 resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
                                 "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
@@ -452,8 +460,6 @@ resalllongsum <- ddply(resalllong, .variables=c("train_pattern", "test_pattern",
 
 resalllongsum$method <- factor(resalllongsum$method, levels=c("ComplcRF", "SingleBlRF", "BlwRF", "MultisRF", "ImpRF", "MddsPLS", "PrLasso"))
 
-fix(resalllongsum)
-
 library("ggplot2")
 p <- ggplot(data=resalllongsum, aes(x=method, y=rank)) + theme_bw() + facet_wrap(~measure, nrow=3, scales="free_y") +
   geom_boxplot() +   theme(axis.text.x=element_text(size=16, angle=45, vjust=1, hjust=1, colour="black"), 
@@ -463,9 +469,7 @@ p <- ggplot(data=resalllongsum, aes(x=method, y=rank)) + theme_bw() + facet_wrap
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/Figure_2.pdf", width=7, height=10)
-
-unique(resalllongsum$measure)
+ggsave("./evaluation_code_and_results/figures_and_table3/Figure_3.pdf", width=7, height=10)
 
 
 sort(tapply(resalllongsum$rank[resalllongsum$measure=="Brier"], resalllongsum$method[resalllongsum$measure=="Brier"], mean))
@@ -550,7 +554,7 @@ p <- ggplot(data=ggdata, aes(x=method, y=value)) + theme_bw() + facet_wrap(~meas
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_global_NoComplcRF_values.pdf", width=7, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_global_NoComplcRF_values.pdf", width=7, height=10)
 
 
 
@@ -558,6 +562,8 @@ ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_global_NoCom
 
 
 # Boxplots of the ranks:
+
+
 
 resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
@@ -623,10 +629,7 @@ p <- ggplot(data=resalllongsum, aes(x=method, y=rank)) + theme_bw() + facet_wrap
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_global_NoComplcRF_ranks.pdf", width=7, height=10)
-
-
-
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_global_NoComplcRF_ranks.pdf", width=7, height=10)
 
 
 
@@ -703,7 +706,7 @@ p <- ggplot(data=ggdata, aes(x=method, y=value)) + theme_bw() + facet_wrap(~meas
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_global_NoMultisRF_values.pdf", width=7, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_global_NoMultisRF_values.pdf", width=7, height=10)
 
 
 
@@ -711,6 +714,8 @@ ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_global_NoMul
 
 
 # Boxplots of the ranks:
+
+
 
 resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
@@ -776,7 +781,7 @@ p <- ggplot(data=resalllongsum, aes(x=method, y=rank)) + theme_bw() + facet_wrap
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_global_NoMultisRF_ranks.pdf", width=7, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_global_NoMultisRF_ranks.pdf", width=7, height=10)
 
 
 
@@ -851,7 +856,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="Brier",], aes(x=method, y=value)) + the
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_Brier_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_Brier_values.pdf", width=10, height=7)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -864,7 +869,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_ACC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_ACC_values.pdf", width=10, height=7)
 
 p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
   geom_line(aes(group=interaction(test_pattern, dataset), color=helpvar), alpha = 0.3) + geom_boxplot(fill=NA) +
@@ -876,7 +881,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_AUC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_AUC_values.pdf", width=10, height=7)
 
 
 
@@ -884,6 +889,8 @@ ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_AUC_va
 
 
 # Boxplots of the ranks:
+
+
 
 resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
@@ -955,7 +962,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/Figure_3.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/Figure_4.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -966,7 +973,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_ACC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_ACC_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -977,7 +984,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_AUC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_AUC_ranks.pdf", width=10, height=7)
 
 
 
@@ -1044,7 +1051,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="Brier",], aes(x=method, y=value)) + the
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoComplcRF_Brier_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoComplcRF_Brier_values.pdf", width=10, height=7)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -1057,7 +1064,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoComplcRF_ACC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoComplcRF_ACC_values.pdf", width=10, height=7)
 
 p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
   geom_line(aes(group=interaction(test_pattern, dataset), color=helpvar), alpha = 0.3) + geom_boxplot(fill=NA) +
@@ -1069,13 +1076,15 @@ p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoComplcRF_AUC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoComplcRF_AUC_values.pdf", width=10, height=7)
 
 
 
 
 
 # Boxplots of the ranks:
+
+
 
 resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
@@ -1152,7 +1161,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoComplcRF_Brier_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoComplcRF_Brier_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -1163,7 +1172,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoComplcRF_ACC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoComplcRF_ACC_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -1174,7 +1183,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoComplcRF_AUC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoComplcRF_AUC_ranks.pdf", width=10, height=7)
 
 
 
@@ -1240,7 +1249,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="Brier",], aes(x=method, y=value)) + the
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoMultisRF_Brier_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoMultisRF_Brier_values.pdf", width=10, height=7)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -1253,7 +1262,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoMultisRF_ACC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoMultisRF_ACC_values.pdf", width=10, height=7)
 
 p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
   geom_line(aes(group=interaction(test_pattern, dataset), color=helpvar), alpha = 0.3) + geom_boxplot(fill=NA) +
@@ -1265,13 +1274,15 @@ p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoMultisRF_AUC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoMultisRF_AUC_values.pdf", width=10, height=7)
 
 
 
 
 
 # Boxplots of the ranks:
+
+
 
 resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
@@ -1345,7 +1356,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoMultisRF_Brier_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoMultisRF_Brier_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -1356,7 +1367,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoMultisRF_ACC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoMultisRF_ACC_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -1367,7 +1378,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_NoMultisRF_AUC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_NoMultisRF_AUC_ranks.pdf", width=10, height=7)
 
 
 
@@ -1440,7 +1451,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="Brier",], aes(x=method, y=value)) + the
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_Brier_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_Brier_values.pdf", width=10, height=7)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -1453,7 +1464,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_ACC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_ACC_values.pdf", width=10, height=7)
 
 p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
   geom_line(aes(group=interaction(train_pattern, dataset), color=helpvar), alpha = 0.3) + geom_boxplot(fill=NA) +
@@ -1465,13 +1476,15 @@ p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_AUC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_AUC_values.pdf", width=10, height=7)
 
 
 
 
 
 # Boxplots of the ranks:
+
+
 
 resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
@@ -1549,7 +1562,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/Figure_4.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/Figure_5.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -1560,7 +1573,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_ACC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_ACC_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -1571,7 +1584,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_AUC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_AUC_ranks.pdf", width=10, height=7)
 
 
 
@@ -1635,7 +1648,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="Brier",], aes(x=method, y=value)) + the
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoComplcRF_Brier_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoComplcRF_Brier_values.pdf", width=10, height=7)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -1648,7 +1661,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoComplcRF_ACC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoComplcRF_ACC_values.pdf", width=10, height=7)
 
 p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
   geom_line(aes(group=interaction(train_pattern, dataset), color=helpvar), alpha = 0.3) + geom_boxplot(fill=NA) +
@@ -1660,13 +1673,15 @@ p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoComplcRF_AUC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoComplcRF_AUC_values.pdf", width=10, height=7)
 
 
 
 
 
 # Boxplots of the ranks:
+
+
 
 resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
@@ -1743,7 +1758,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoComplcRF_Brier_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoComplcRF_Brier_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -1754,7 +1769,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoComplcRF_ACC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoComplcRF_ACC_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -1765,7 +1780,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoComplcRF_AUC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoComplcRF_AUC_ranks.pdf", width=10, height=7)
 
 
 
@@ -1830,7 +1845,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="Brier",], aes(x=method, y=value)) + the
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoMultisRF_Brier_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoMultisRF_Brier_values.pdf", width=10, height=7)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -1843,7 +1858,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoMultisRF_ACC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoMultisRF_ACC_values.pdf", width=10, height=7)
 
 p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
   geom_line(aes(group=interaction(train_pattern, dataset), color=helpvar), alpha = 0.3) + geom_boxplot(fill=NA) +
@@ -1855,13 +1870,15 @@ p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoMultisRF_AUC_values.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoMultisRF_AUC_values.pdf", width=10, height=7)
 
 
 
 
 
 # Boxplots of the ranks:
+
+
 
 resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
@@ -1937,7 +1954,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoMultisRF_Brier_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoMultisRF_Brier_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -1948,7 +1965,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoMultisRF_ACC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoMultisRF_ACC_ranks.pdf", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -1959,7 +1976,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoMultisRF_AUC_ranks.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_tebmp_NoMultisRF_AUC_ranks.pdf", width=10, height=7)
 
 
 
@@ -1969,21 +1986,11 @@ ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_tebmp_NoMult
 
 
 
+################################################################################
+# Comparison of the methods separated by combination of trbmp and tebmp pattern
+################################################################################
 
-
-
-
-
-
-
-
-
-#asdf
-
-#######################################################
-# Comparison of the methods separated by tebmp pattern
-#######################################################
-
+resall <- resallsafe
 
 # Perform the analysis under the exclusion of all repetitions for which at least
 # one method resulted in an error:
@@ -2045,7 +2052,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="Brier",], aes(x=method, y=value)) + the
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_Brier_values.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_Brier_values.pdf", width=10, height=10)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2058,7 +2065,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_ACC_values.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_ACC_values.pdf", width=10, height=10)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2071,14 +2078,16 @@ p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_AUC_values.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_AUC_values.pdf", width=10, height=10)
 
 
 
 
 # Boxplots of the ranks:
 
-resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
+restemp2 <- restemp[restemp$method!="FulldataRF",]
+
+resallwide <- reshape(restemp2[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
                                                                          "dataset"), timevar = "method", direction = "wide")
 
@@ -2092,7 +2101,7 @@ resalllongAUC <- reshape(resallwide, varying=colnames(resranks),
                          direction="long")
 
 
-resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
+resallwide <- reshape(restemp2[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "Accuracy")], idvar = c("train_pattern", "test_pattern", "repetition",
                                                                               "dataset"), timevar = "method", direction = "wide")
 
@@ -2106,7 +2115,7 @@ resalllongAccuracy <- reshape(resallwide, varying=colnames(resranks),
                               direction="long")
 
 
-resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
+resallwide <- reshape(restemp2[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "BrierScore")], idvar = c("train_pattern", "test_pattern", "repetition",
                                                                                 "dataset"), timevar = "method", direction = "wide")
 
@@ -2148,7 +2157,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/Figure_5.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/Figure_6.pdf", width=10, height=10)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern+test_pattern, nrow=5, drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2159,7 +2168,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_ACC_ranks.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_ACC_ranks.pdf", width=10, height=10)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern+test_pattern, nrow=5, drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2170,7 +2179,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_AUC_ranks.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_AUC_ranks.pdf", width=10, height=10)
 
 
 
@@ -2238,7 +2247,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="Brier",], aes(x=method, y=value)) + the
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoComplcRF_Brier_values.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoComplcRF_Brier_values.pdf", width=10, height=10)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2251,7 +2260,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoComplcRF_ACC_values.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoComplcRF_ACC_values.pdf", width=10, height=10)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2264,14 +2273,77 @@ p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoComplcRF_AUC_values.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoComplcRF_AUC_values.pdf", width=10, height=10)
+
+
+
+
+
+
+tempdata <- ggdata[ggdata$measure=="Brier",]
+tempdata <- ddply(tempdata, .variables=c("train_pattern", "test_pattern", "method"), .fun=summarise, value=mean(value, na.rm=TRUE))
+
+p <- ggplot(data=tempdata, aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
+  geom_line(aes(group=interaction(train_pattern, test_pattern))) + 
+  theme(axis.text.x=element_text(size=16, angle=45, vjust=1, hjust=1, colour="black"), 
+        axis.text.y=element_text(size=14, colour="black"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_text(size=16),
+        strip.text.x = element_text(size = 16), legend.position = "none") + ylab("mean across repetitions") +
+  scale_color_continuous(type = "viridis")
+p
+
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoComplcRF_Brier_means.pdf", width=10, height=10)
+
+
+
+tempdata <- ggdata[ggdata$measure=="ACC",]
+tempdata <- ddply(tempdata, .variables=c("train_pattern", "test_pattern", "method"), .fun=summarise, value=mean(value, na.rm=TRUE))
+
+p <- ggplot(data=tempdata, aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
+  geom_line(aes(group=interaction(train_pattern, test_pattern))) + 
+  theme(axis.text.x=element_text(size=16, angle=45, vjust=1, hjust=1, colour="black"), 
+        axis.text.y=element_text(size=14, colour="black"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_text(size=16),
+        strip.text.x = element_text(size = 16), legend.position = "none") + ylab("mean across repetitions") +
+  scale_color_continuous(type = "viridis")
+p
+
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoComplcRF_ACC_means.pdf", width=10, height=10)
+
+
+
+tempdata <- ggdata[ggdata$measure=="AUC",]
+tempdata <- ddply(tempdata, .variables=c("train_pattern", "test_pattern", "method"), .fun=summarise, value=mean(value, na.rm=TRUE))
+
+p <- ggplot(data=tempdata, aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
+  geom_line(aes(group=interaction(train_pattern, test_pattern))) + 
+  theme(axis.text.x=element_text(size=16, angle=45, vjust=1, hjust=1, colour="black"), 
+        axis.text.y=element_text(size=14, colour="black"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_text(size=16),
+        strip.text.x = element_text(size = 16), legend.position = "none") + ylab("mean across repetitions") +
+  scale_color_continuous(type = "viridis")
+p
+
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoComplcRF_AUC_means.pdf", width=10, height=10)
+
+
+
+
+
+
+
 
 
 
 
 # Boxplots of the ranks:
 
-resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
+restemp2 <- restemp[restemp$method!="FulldataRF",]
+
+resallwide <- reshape(restemp2[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
                                                                          "dataset"), timevar = "method", direction = "wide")
 
@@ -2285,7 +2357,7 @@ resalllongAUC <- reshape(resallwide, varying=colnames(resranks),
                          direction="long")
 
 
-resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
+resallwide <- reshape(restemp2[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "Accuracy")], idvar = c("train_pattern", "test_pattern", "repetition",
                                                                               "dataset"), timevar = "method", direction = "wide")
 
@@ -2299,7 +2371,7 @@ resalllongAccuracy <- reshape(resallwide, varying=colnames(resranks),
                               direction="long")
 
 
-resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
+resallwide <- reshape(restemp2[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "BrierScore")], idvar = c("train_pattern", "test_pattern", "repetition",
                                                                                 "dataset"), timevar = "method", direction = "wide")
 
@@ -2350,7 +2422,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoComplcRF_Brier_ranks.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoComplcRF_Brier_ranks.pdf", width=10, height=10)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern+test_pattern, nrow=5, drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2361,7 +2433,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoComplcRF_ACC_ranks.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoComplcRF_ACC_ranks.pdf", width=10, height=10)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern+test_pattern, nrow=5, drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2372,7 +2444,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoComplcRF_AUC_ranks.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoComplcRF_AUC_ranks.pdf", width=10, height=10)
 
 
 
@@ -2442,7 +2514,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="Brier",], aes(x=method, y=value)) + the
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoMultisRF_Brier_values.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoMultisRF_Brier_values.pdf", width=10, height=10)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2455,7 +2527,7 @@ p <- ggplot(data=ggdata[ggdata$measure=="ACC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoMultisRF_ACC_values.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoMultisRF_ACC_values.pdf", width=10, height=10)
 
 
 p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2468,14 +2540,75 @@ p <- ggplot(data=ggdata[ggdata$measure=="AUC",], aes(x=method, y=value)) + theme
   scale_color_continuous(type = "viridis")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoMultisRF_AUC_values.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoMultisRF_AUC_values.pdf", width=10, height=10)
+
+
+
+
+tempdata <- ggdata[ggdata$measure=="Brier",]
+tempdata <- ddply(tempdata, .variables=c("train_pattern", "test_pattern", "method"), .fun=summarise, value=mean(value, na.rm=TRUE))
+
+p <- ggplot(data=tempdata, aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
+  geom_line(aes(group=interaction(train_pattern, test_pattern))) + 
+  theme(axis.text.x=element_text(size=16, angle=45, vjust=1, hjust=1, colour="black"), 
+        axis.text.y=element_text(size=14, colour="black"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_text(size=16),
+        strip.text.x = element_text(size = 16), legend.position = "none") + ylab("mean across repetitions") +
+  scale_color_continuous(type = "viridis")
+p
+
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoMultisRF_Brier_means.pdf", width=10, height=10)
+
+
+
+tempdata <- ggdata[ggdata$measure=="ACC",]
+tempdata <- ddply(tempdata, .variables=c("train_pattern", "test_pattern", "method"), .fun=summarise, value=mean(value, na.rm=TRUE))
+
+p <- ggplot(data=tempdata, aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
+  geom_line(aes(group=interaction(train_pattern, test_pattern))) + 
+  theme(axis.text.x=element_text(size=16, angle=45, vjust=1, hjust=1, colour="black"), 
+        axis.text.y=element_text(size=14, colour="black"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_text(size=16),
+        strip.text.x = element_text(size = 16), legend.position = "none") + ylab("mean across repetitions") +
+  scale_color_continuous(type = "viridis")
+p
+
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoMultisRF_ACC_means.pdf", width=10, height=10)
+
+
+
+tempdata <- ggdata[ggdata$measure=="AUC",]
+tempdata <- ddply(tempdata, .variables=c("train_pattern", "test_pattern", "method"), .fun=summarise, value=mean(value, na.rm=TRUE))
+
+p <- ggplot(data=tempdata, aes(x=method, y=value)) + theme_bw() + facet_wrap(~train_pattern+test_pattern,nrow=5,drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
+  geom_line(aes(group=interaction(train_pattern, test_pattern))) + 
+  theme(axis.text.x=element_text(size=16, angle=45, vjust=1, hjust=1, colour="black"), 
+        axis.text.y=element_text(size=14, colour="black"),
+        axis.title.x=element_blank(),
+        axis.title.y=element_text(size=16),
+        strip.text.x = element_text(size = 16), legend.position = "none") + ylab("mean across repetitions") +
+  scale_color_continuous(type = "viridis")
+p
+
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoMultisRF_AUC_means.pdf", width=10, height=10)
+
+
+
+
+
+
+
 
 
 
 
 # Boxplots of the ranks:
 
-resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
+restemp2 <- restemp[restemp$method!="FulldataRF",]
+
+resallwide <- reshape(restemp2[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "AUC")], idvar = c("train_pattern", "test_pattern", "repetition",
                                                                          "dataset"), timevar = "method", direction = "wide")
 
@@ -2489,7 +2622,7 @@ resalllongAUC <- reshape(resallwide, varying=colnames(resranks),
                          direction="long")
 
 
-resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
+resallwide <- reshape(restemp2[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "Accuracy")], idvar = c("train_pattern", "test_pattern", "repetition",
                                                                               "dataset"), timevar = "method", direction = "wide")
 
@@ -2503,7 +2636,7 @@ resalllongAccuracy <- reshape(resallwide, varying=colnames(resranks),
                               direction="long")
 
 
-resallwide <- reshape(restemp[,c("train_pattern", "test_pattern", "repetition",
+resallwide <- reshape(restemp2[,c("train_pattern", "test_pattern", "repetition",
                                  "dataset", "method", "BrierScore")], idvar = c("train_pattern", "test_pattern", "repetition",
                                                                                 "dataset"), timevar = "method", direction = "wide")
 
@@ -2544,7 +2677,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoMultisRF_Brier_ranks.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoMultisRF_Brier_ranks.pdf", width=10, height=10)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern+test_pattern, nrow=5, drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2555,7 +2688,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoMultisRF_ACC_ranks.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoMultisRF_ACC_ranks.pdf", width=10, height=10)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern+test_pattern, nrow=5, drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
@@ -2566,4 +2699,4 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="AUC",], aes(x=method, y=r
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table1/SuppFigure_trbmp_tebmp_NoMultisRF_AUC_ranks.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_trbmp_tebmp_NoMultisRF_AUC_ranks.pdf", width=10, height=10)

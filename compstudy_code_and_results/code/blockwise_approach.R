@@ -27,6 +27,9 @@ library(randomForestSRC)
 library(caret)
 library(pROC)
 
+# Use rejection sampling for random number sampling:
+RNGkind(sample.kind = "Rejection") 
+
 # 0-3 Define variables
 
 # 0-4 Define functions
@@ -125,8 +128,7 @@ for (curr_path in df_paths) {
         
         # Add the results of the setting to 'BW_res' & save it
         BW_res <- rbind(BW_res, curr_res)
-        write.csv(BW_res, './compstudy_code_and_results/results/bw_approach/BW_Eval_TEST.csv')
-        # write.csv(BW_res, './compstudy_code_and_results/results/bw_approach/BW_Eval.csv')
+        write.csv(BW_res, './compstudy_code_and_results/results/bw_approach/BW_Eval.csv')
       }
     }
   }

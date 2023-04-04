@@ -25,6 +25,9 @@ library(randomForestSRC)
 library(caret)
 library(pROC)
 
+# Use rejection sampling for random number sampling:
+RNGkind(sample.kind = "Rejection") 
+
 # 0-3 Define variables
 
 # 0-4 Define functions

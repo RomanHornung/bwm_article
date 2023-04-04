@@ -19,6 +19,9 @@ library(caret)
 library(pROC)
 library(combinat)
 
+# Use rejection sampling for random number sampling:
+RNGkind(sample.kind = "Rejection") 
+
 # 0-3 Define variables
 
 # 0-4 Define functions
@@ -97,7 +100,7 @@ for (curr_train_pattern in c(1, 2, 3, 4, 5)) {
                              data.frame("path"               = curr_path, 
                                         "frac_train"         = 0.75, 
                                         "split_seed"         = curr_split_seed, 
-                                        "block_seed_train"   = curr_block_seed_test,
+                                        "block_seed_train"   = curr_block_seed_train,
                                         "block_seed_test"    = curr_block_seed_test, 
                                         "block_order_train_for_BWM" = '---',
                                         "block_order_test_for_BWM"  = '---',

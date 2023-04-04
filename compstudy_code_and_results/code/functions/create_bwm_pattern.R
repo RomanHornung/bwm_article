@@ -598,3 +598,65 @@ get_train_test <- function(path, frac_train = 0.75, split_seed = 1312,  block_se
   return(list('Train' = train_bwm,
               'Test'  = test_bwm))
 }
+
+
+# 0-4-7 Wrap-Function that combines all of the above functions!
+get_train_test_fulldata <- function(path, frac_train = 0.75, split_seed = 1312,  block_seed_train = 1312, 
+                           block_seed_test  = 1234, train_pattern = 1, train_pattern_seed = 1234, 
+                           test_pattern = 2) {
+  "Wrap up the functions from 0-4-1 to 0-4-6.
+   Load the data, process it to a single DF, split it to test- & train-set, 
+   seperatly shuffle the order of the blocks in test- & train-set & induce BWM
+   into them according to 'train_pattern' & 'test_pattern'
+  
+  Args: 
+    > path               (str): Path to a dataset - must contain './compstudy_code_and_results/data'
+    > frac_train       (float): Fraction of observations for the train-set (]0;1[)
+    > split_seed         (int): Seed for the split of the data to train & test
+    > block_seed_train   (int): Seed for the shuffeling of the block-order in train 
+    > block_seed_test    (int): Seed for the shuffeling of the block-order in test 
+    > train_pattern      (int): Pattern to induce into train (1, 2, 3, 4, 5)
+    > train_pattern_seed (int): Seed for the induction of the pattern for train
+                                (obs. are assigned to different folds!)
+    > test_pattern       (int): Pattern to induce into test (1, 2, 3, 4)
+    
+  Return:
+    > A list with the lists 'Train' & 'Test'. Both of the lists contain the entrances:
+       - 'data' (w/ BWM according to 'train_pattern' / 'test_pattern')
+       - 'block_index' (index of the blocks after the order of the blocks has been shuffled)
+       - 'block_names' (names of the blocks after they have been shuffled)
+       - 'Train' also has a additional entrance 'fold_index' with the assigned fold for each obs.
+  "
+  # [0] Check Inputs
+  # 0-1 'path' must be a string with './compstudy_code_and_results/data' in it
+  assert_string(path, pattern = './compstudy_code_and_results/data')
+  
+  # 0-2 'frac_train' must be a float between 0 & 1
+  assert_numeric(frac_train, lower = 0, upper = 1)
+  
+  # 0-3 'split_seed', 'block_seed_train', 'block_seed_test' & 'train_pattern_seed'
+  #     must be integers
+  assert_int(split_seed)
+  assert_int(block_seed_train)
+  assert_int(block_seed_test)
+  assert_int(train_pattern_seed)
+  
+  # 0-4 'train_pattern'/ 'test_pattern' has to be a int in [1-5]/ [1-4]
+  assert_int(train_pattern, lower = 1, upper = 5)
+  assert_int(test_pattern, lower = 1, upper = 4)
+  
+  # [1] Load & process the data from 'path' & split it to Test- & Train-set
+  # 1-1 Load the raw data 
+  raw_data <- load_data(path = path)
+  
+  # 1-2 Process 'raw_data' to a single DF with infos to block names & their index
+  #     'mutation'-block is only used to extract the response 'TP53' (now 'ytarget'), rest removed
+  data_processed <- process_loaded_data(raw_data)
+  
+  # 1-3 Split 'data_shuffled' to Train- & Test-Set
+  train_test <- split_processed_data(data_processed, fraction_train = frac_train, seed = split_seed)
+
+  # [3] Return the training and the test data:
+  return(list('Train' = train_test$train,
+              'Test'  = train_test$test))
+}

@@ -26,6 +26,10 @@ library(randomForestSRC)
 library(caret)
 library(pROC)
 
+
+# Use rejection sampling for random number sampling:
+RNGkind(sample.kind = "Rejection") 
+
 # 0-3 Define variables
 
 # 0-4 Define functions
@@ -83,7 +87,7 @@ for (curr_path in df_paths) {
         
         #     4. Seed for the train-pattern (assignment of obs. in train to folds)
         curr_train_pattern_seed <- seeds[4]
-
+        
         # Run the evaluation with current settings- in case of error, return DF
         # w/o '---' as metrics
         curr_res <- tryCatch(eval_cc_appr(path               = curr_path, 
@@ -131,3 +135,16 @@ for (curr_path in df_paths) {
     }
   }
 }
+
+
+
+for (curr_path in df_paths[1]) {
+  for (curr_train_pattern in c(1, 2, 3, 4, 5)) {
+    for (curr_test_pattern in c(1, 2, 3, 4)) {
+      for (curr_repetition in c(1, 2, 3, 4, 5)) {
+        
+      }
+    }
+  }
+}
+

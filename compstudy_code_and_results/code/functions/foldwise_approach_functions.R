@@ -1413,9 +1413,12 @@ eval_fw_approach <- function(path = './compstudy_code_and_results/data/BLCA.Rda'
 
 
 
-##### ROMAN:
-# This function generates a simulated data set and calculates the importance values for
-# all methods except for the IMDMS.
+
+
+
+
+# This function performs the calculations for a specific iteration, that is,
+# for a specific row of 'scenariogrid'.
 #
 # It takes the whole number 'iter', which corresponds to the iter-th line 
 # of 'scenariogrid', which contains the necessary information
@@ -1458,40 +1461,7 @@ evaluatesetting <- function(iter) {
   
   #     4. Seed for the train-pattern (assignment of obs. in train to folds)
   curr_train_pattern_seed <- seeds[4]
-  
-  if(FALSE) {
-    # Run the evaluation with current settings
-    curr_res <- tryCatch(eval_fw_approach(path               = curr_path,
-                                          frac_train         = 0.75,
-                                          split_seed         = curr_split_seed,
-                                          block_seed_train   = curr_block_seed_train,
-                                          block_seed_test    = curr_block_seed_test,
-                                          train_pattern      = curr_train_pattern,
-                                          train_pattern_seed = curr_train_pattern_seed,
-                                          test_pattern       = curr_test_pattern),
-                         error = function(c) {
-                           data.frame("path"               = curr_path,
-                                      "frac_train"         = 0.75,
-                                      "split_seed"         = curr_split_seed,
-                                      "block_seed_train"   = curr_block_seed_train,
-                                      "block_seed_test"    = curr_block_seed_test,
-                                      "block_order_train_for_BWM" = '---',
-                                      "block_order_test_for_BWM"  = '---',
-                                      "train_pattern"      = curr_train_pattern,
-                                      "train_pattern_seed" = curr_train_pattern_seed,
-                                      "test_pattern"       = curr_test_pattern,
-                                      "AUC"                = '---',
-                                      "Accuracy"           = '---',
-                                      "Sensitivity"        = '---',
-                                      "Specificity"        = '---',
-                                      "Precision"          = '---',
-                                      "Recall"             = '---',
-                                      "F1"                 = '---',
-                                      "BrierScore"         = '---')
-                         }
-    )
-  }
-  
+
   curr_res <- eval_fw_approach(path               = curr_path,
                                frac_train         = 0.75,
                                split_seed         = curr_split_seed,
