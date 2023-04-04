@@ -1,5 +1,8 @@
-For priority-LASSO, reproducing the results is more complex than for the other methods.
+For priority-LASSO and mdd-sPLS, reproducing the results is more complex than for the
+other methods.
+
 The procedure is described below.
+
 
 
 
@@ -38,11 +41,17 @@ file "r_4_0_3_with_ddspls_prioritylasso.def".
 
 
 
+
 ###################################################################################
 # Running the R code
 ###################################################################################
 
-The results are obtained separately for each data set.
+For priority-LASSO and mdd-sPLS the results are obtained separately for each data set.
+
+
+   ################################################################################
+   # Priority-LASSO
+   ################################################################################
 
 1) The R script "prioritylasso_approach.R" must be run from the command line. 
 To use this script, you should give the data set name as a command line argument. 
@@ -84,3 +93,31 @@ The R script "prioritylasso_approach_combine_results.R" can be used to merge
 these csv files into a single csv file containing the results for all replicates.
 Before running this file, "PL_Eval_PAAD.csv" must be renamed to "PL_Eval_PAAD_old.csv" 
 and "PL_Eval_ESCA.csv" must be renamed to "PL_Eval_ESCA_old.csv".
+
+
+   ################################################################################
+   # mdd-sPLS
+   ################################################################################
+
+The R script "mddspls_approach.R" must be run from the command line. 
+To use this script, you should give the data set name as a command line argument
+followed by "1 1 1".*
+
+For example, the results for the BLCA data set can be obtained as follows:
+
+singularity exec container_name.sif Rscript mddspls_approach.R "BLCA" 1 1 1
+
+(If you are not using a Singularity container, it would simply be 
+Rscript mddspls_approach.R "BLCA" 1 1 1)
+
+This will save the file "MDDSPLS_Eval_BLCA_1_1_1.csv" in the directory 
+"bwm_article/compstudy_code_and_results/results/mddspls_approach".
+
+
+
+
+* The "1 1 1" is actually a relic. This would refer to 
+the curr_train_pattern, curr_test_pattern and curr_repetition arguments
+as described above for priority-LASSO. These arguments would be used
+in a similar way as for priority-LASSO if errors had occurred for mdd-sPLS.
+However, there were no errors in the case of mdd-PLS.
