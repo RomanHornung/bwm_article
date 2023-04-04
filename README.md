@@ -1,5 +1,5 @@
-# BWM-Paper
-**Prediction approaches for partly missing multi-omics covariate data: A literature review and an empirical comparison study**   
+# Electronic appendix to the article 'Prediction approaches for partly missing multi-omics covariate data: A literature review and an empirical comparison study'
+
 Roman Hornung, Frederik Ludwigs, Jonas Hagenberg, Anne-Laure Boulesteix
 
 This repository was written largely by Frederik Ludwigs and Jonas Hagenberg.
@@ -39,24 +39,8 @@ This repository was written largely by Frederik Ludwigs and Jonas Hagenberg.
   install.packages("pathtothetargzfile/ddsPLS_1.1.7.tar.gz", repose=NULL, type="source")
   ```
   
-- This repository contains two subdirectories, `compstudy_code_and_results' and `evaluation_code_and_results':
+- This repository contains two subdirectories, `compstudy_code_and_results` and `evaluation_code_and_results`:
 
   - `compstudy_code_and_results` contains the code and raw results of the empirical comparison study. The downloaded data sets from figshare (see above) have to be stored in the data subdirectory of `compstudy_code_and_results` in order to reproduce the empirical comparison study.
 
-  - `evaluation_code_and_results` contains the code for the evaluation of the raw results of the empirical comparison study in order to reproduce the final figures and Table 3 presented in the paper and supplement. More specifically, `evaluation.R` allows all figures to be reproduced and `table3.R` reproduces Table 3. Note that this does not require the entire empirical comparison study to be reproduced, as the raw results are included in this repository and, as mentioned above, the evaluation code uses the raw results.
-  
-## Folder structure  
-```
-├── README.md <- This README
-│ 
-├── compstudy_code_and_results <- R code and raw results of the empirical comparison study
-│   │   
-│   ├─── code         <- R code for producing the raw results
-│   └─── data         <- empty folder that needs to be filled with the processed data sets for reproducing the raw results
-│   └─── results      <- raw results
-│  
-├── evaluation_code_and_results <- R code for evaluating the raw results and the figures and the table shown in the paper and in the Supplementary Materials
-    │  
-    ├─── code                <- R code for evaluating the raw results
-    └─── figures_and_table1  <- the figures and the table shown in the paper and in the Supplementary Materials
-```
+  - `evaluation_code_and_results` contains the code for the evaluation of the raw results of the empirical comparison study in order to reproduce the final figures and Table 3 presented in the paper and supplement. More specifically, `evaluation.R` allows all figures to be reproduced, `table3.R` reproduces Table 3, and `tableS1.R` reproduces Table S1. Note that this does not require the entire empirical comparison study to be reproduced, as the raw results are included in this repository and, as mentioned above, the evaluation code uses the raw results.
