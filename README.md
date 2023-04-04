@@ -25,7 +25,7 @@ This repository was written largely by Frederik Ludwigs and Jonas Hagenberg.
 
 ## Availability of the data sets used and structure of the repository:
 
-- We provide all R codes used in the analysis. Nevertheless,
+- We provide all R codes used in the analysis. However,
   the pre-processed data sets (downloaded from The Cancer Genome
   Atlas (TCGA) database) cannot be provided in this repository due to their sizes.
   These can be downloaded from figshare using the following link:
