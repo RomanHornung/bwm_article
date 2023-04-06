@@ -3,7 +3,7 @@
 # and replace 'pathtobwm_article' by the path to 'bwm_article'
 # on your computer):
 
-## setwd("pathtobwm_article/bwm_article")
+setwd("Z:/Projects/SideProjects/BlockwiseMissing/WIREs/FirstRevision/Code/bwm_article")
 
 
 if (FALSE) {
@@ -401,6 +401,8 @@ ggsave("./evaluation_code_and_results/figures_and_table3/SuppFigure_global_value
 
 
 
+
+
 # Boxplots of the ranks:
 
 
@@ -469,7 +471,7 @@ p <- ggplot(data=resalllongsum, aes(x=method, y=rank)) + theme_bw() + facet_wrap
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table3/Figure_3.pdf", width=7, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/Figure_3.eps", width=7, height=10)
 
 
 sort(tapply(resalllongsum$rank[resalllongsum$measure=="Brier"], resalllongsum$method[resalllongsum$measure=="Brier"], mean))
@@ -962,7 +964,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table3/Figure_4.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/Figure_4.eps", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern, nrow=2) +
@@ -1562,7 +1564,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table3/Figure_5.pdf", width=10, height=7)
+ggsave("./evaluation_code_and_results/figures_and_table3/Figure_5.eps", width=10, height=7)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~test_pattern, nrow=2) +
@@ -2157,7 +2159,7 @@ p <- ggplot(data=resalllongsum[resalllongsum$measure=="Brier",], aes(x=method, y
                            strip.text.x = element_text(size = 16)) + ylab("mean rank")
 p
 
-ggsave("./evaluation_code_and_results/figures_and_table3/Figure_6.pdf", width=10, height=10)
+ggsave("./evaluation_code_and_results/figures_and_table3/Figure_6.eps", width=10, height=10)
 
 
 p <- ggplot(data=resalllongsum[resalllongsum$measure=="ACC",], aes(x=method, y=rank)) + theme_bw() + facet_wrap(~train_pattern+test_pattern, nrow=5, drop=FALSE, labeller = label_wrap_gen(multi_line=FALSE)) +
