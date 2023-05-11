@@ -21,6 +21,7 @@ This repository was written largely by Frederik Ludwigs and Jonas Hagenberg.
   - 'pROC', version: 1.15.3 
   - 'randomForestSRC', version: 2.9.2 
   - 'ROCR', version: 1.0-7
+  - 'this.path', version: 1.4.0
   - 'xtable', version: 1.8-4
 
 ## Availability of the data sets used and structure of the repository:
