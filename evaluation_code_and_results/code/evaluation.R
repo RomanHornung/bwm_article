@@ -1,9 +1,8 @@
 # Set the working directory to the directory 'bwm_article' 
-# of the electronic appendix (outcomment the following line
-# and replace 'pathtobwm_article' by the path to 'bwm_article'
-# on your computer):
+# of the electronic appendix:
 
-setwd("Z:/Projects/SideProjects/BlockwiseMissing/WIREs/FirstRevision/Code/bwm_article")
+library("this.path")
+setwd(gsub("/evaluation_code_and_results/code", "", this.dir()))
 
 
 if (FALSE) {

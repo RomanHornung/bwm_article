@@ -1,9 +1,8 @@
 # Set the working directory to the directory 'bwm_article' 
-# of the electronic appendix (outcomment the following line
-# and replace 'pathtobwm_article' by the path to 'bwm_article'
-# on your computer):
+# of the electronic appendix:
 
-## setwd("pathtobwm_article/bwm_article")
+library("this.path")
+setwd(gsub("/compstudy_code_and_results/code", "", this.dir()))
 
 "Script to evaluate the Complete-Case approach on data with blockwise missingness
  Split a DF to a train- & test-set, separately induce block-wise missingness

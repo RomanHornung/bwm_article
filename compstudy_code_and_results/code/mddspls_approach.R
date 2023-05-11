@@ -1,9 +1,8 @@
 # Set the working directory to the directory 'bwm_article' 
-# of the electronic appendix (outcomment the following line
-# and replace 'pathtobwm_article' by the path to 'bwm_article'
-# on your computer):
+# of the electronic appendix:
 
-## setwd("pathtobwm_article/bwm_article")
+library("this.path")
+setwd(gsub("/compstudy_code_and_results/code", "", this.dir()))
 
 # This script expects the name of the data set, the train pattern, the test
 # pattern and the repetition as a command line argument
